@@ -1,0 +1,17 @@
+# .NET build artifacts
+[Bb]in/
+[Oo]bj/
+*.user
+
+# Aspire / EF
+**/Properties/launchSettings.local.json
+
+# Rider / VS
+.idea/
+.vs/
+
+# OS
+.DS_Store
+
+# Claude Code runtime
+.claude/scheduled_tasks.lock

@@ -1,0 +1,71 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/*
+ * Дизайн-система AI Issue Tracker — см. DESIGN-SYSTEM.md.
+ * Семантические токены: используй bg-surface / text-muted, а не сырые значения.
+ */
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-border: var(--border);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+
+  --radius-md: 6px;
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+:root {
+  --background: #f8f9fb;
+  --surface: #ffffff;
+  --surface-muted: #f1f2f5;
+  --border: #e4e6ea;
+  --foreground: #1a1c20;
+  --muted: #6b7280;
+  --primary: #4f46e5;
+  --primary-foreground: #ffffff;
+  --danger: #dc2626;
+  --success: #16a34a;
+  --warning: #d97706;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0e0f12;
+    --surface: #191b1f;
+    --surface-muted: #23262b;
+    --border: #2e3138;
+    --foreground: #f2f3f5;
+    --muted: #9aa1ad;
+    --primary: #6d66f0;
+    --primary-foreground: #ffffff;
+    --danger: #f04444;
+    --success: #3ecf6b;
+    --warning: #f0a020;
+  }
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+}
