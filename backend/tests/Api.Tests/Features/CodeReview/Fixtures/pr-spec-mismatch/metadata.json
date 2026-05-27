@@ -1,0 +1,10 @@
+{
+  "coordinates": { "owner": "anthropics", "repo": "ai-issue-tracker", "number": 2 },
+  "title": "feat: issues",
+  "body": "Per docs/designs/issues.md, but skips the priority enum.",
+  "headSha": "abc1234",
+  "baseSha": "def5678",
+  "headRef": "feat/issues",
+  "baseRef": "main",
+  "author": "mitro"
+}
