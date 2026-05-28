@@ -83,6 +83,14 @@ public sealed class GitHubClient(HttpClient http) : IGitHubClient
         return await response.Content.ReadAsStringAsync(ct);
     }
 
+    public async Task<string> GetAuthenticatedUserAsync(CancellationToken ct)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, "user");
+        using var response = await SendAsync(request, ct);
+        var dto = await response.Content.ReadFromJsonAsync<UserDto>(JsonOptions, ct);
+        return dto?.Login ?? "";
+    }
+
     public async Task PostReviewAsync(
         PrCoordinates coords,
         string commitSha,

@@ -11,6 +11,9 @@ public interface IGitHubClient
 
     Task<string> GetFileContentAsync(PrCoordinates coords, string path, string @ref, CancellationToken ct);
 
+    /// <summary>Login of the user the configured token authenticates as (<c>GET /user</c>).</summary>
+    Task<string> GetAuthenticatedUserAsync(CancellationToken ct);
+
     Task PostReviewAsync(
         PrCoordinates coords,
         string commitSha,
