@@ -10,9 +10,9 @@ using Microsoft.Extensions.Options;
 namespace Api.Features.CodeReview.Agent;
 
 /// <summary>
-/// Drives the Claude tool-use loop and parses the final JSON verdict. Promotes
-/// cache hits by reusing the static system prompt and the tools schema (both
-/// carry <c>cache_control: ephemeral</c>).
+/// Drives the Claude tool-use loop. The final verdict comes back as a forced call to the
+/// <c>submit_review</c> tool whose <c>input_schema</c> is the review shape — Claude is
+/// guaranteed to emit a structured object, so no text/JSON parsing is needed.
 /// </summary>
 public sealed class ClaudeCodeReviewAgent(
     IAnthropicClient anthropic,
@@ -20,11 +20,47 @@ public sealed class ClaudeCodeReviewAgent(
     IOptions<ClaudeOptions> options,
     ILogger<ClaudeCodeReviewAgent> logger) : ICodeReviewAgent
 {
+    private const string SubmitReviewToolName = "submit_review";
+
     private static readonly JsonSerializerOptions ParseOptions = new(JsonSerializerDefaults.Web)
     {
         PropertyNameCaseInsensitive = true,
         Converters = { new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseLower) },
     };
+
+    private static readonly JsonElement SubmitReviewSchema = JsonDocument.Parse("""
+        {
+          "type": "object",
+          "properties": {
+            "summary": {
+              "type": "string",
+              "description": "1–3 short paragraphs describing the overall findings."
+            },
+            "verdict": {
+              "type": "string",
+              "enum": ["approve", "comment", "request_changes"]
+            },
+            "comments": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "path": { "type": "string" },
+                  "line": { "type": "integer" },
+                  "side": { "type": "string", "enum": ["LEFT", "RIGHT"] },
+                  "category": {
+                    "type": "string",
+                    "enum": ["spec_mismatch", "bug", "convention", "tests"]
+                  },
+                  "body": { "type": "string" }
+                },
+                "required": ["path", "line", "side", "category", "body"]
+              }
+            }
+          },
+          "required": ["summary", "verdict", "comments"]
+        }
+        """).RootElement;
 
     public async Task<ReviewResult> ReviewAsync(ReviewContext context, CancellationToken ct)
     {
@@ -51,9 +87,18 @@ public sealed class ClaudeCodeReviewAgent(
 
             messages.Add(new AnthropicMessage("assistant", response.Content));
 
+            var submit = response.Content
+                .OfType<ToolUseBlock>()
+                .FirstOrDefault(b => b.Name == SubmitReviewToolName);
+            if (submit is not null)
+            {
+                return ParseSubmittedReview(submit);
+            }
+
             if (response.StopReason == "end_turn")
             {
-                return ParseFinalReview(response.Content);
+                throw new ReviewAgentException(
+                    "Agent stopped without calling submit_review.");
             }
 
             if (response.StopReason != "tool_use")
@@ -73,18 +118,22 @@ public sealed class ClaudeCodeReviewAgent(
         }
 
         throw new ReviewAgentException(
-            $"Agent loop exceeded MaxTurns={opts.MaxTurns} without reaching end_turn.");
+            $"Agent loop exceeded MaxTurns={opts.MaxTurns} without calling submit_review.");
     }
 
     private static IReadOnlyList<AnthropicTool> BuildTools(IReadOnlyList<ToolDefinition> defs)
     {
-        var tools = new List<AnthropicTool>(defs.Count);
+        var tools = new List<AnthropicTool>(defs.Count + 1);
         for (int i = 0; i < defs.Count; i++)
         {
-            // cache_control on the last tool caches the whole tools array prefix.
-            var cache = i == defs.Count - 1 ? new CacheControl("ephemeral") : null;
-            tools.Add(new AnthropicTool(defs[i].Name, defs[i].Description, defs[i].InputSchema, cache));
+            tools.Add(new AnthropicTool(defs[i].Name, defs[i].Description, defs[i].InputSchema, CacheControl: null));
         }
+        // submit_review terminates the loop; cache_control on the last tool caches the whole prefix.
+        tools.Add(new AnthropicTool(
+            SubmitReviewToolName,
+            "Submit the final pull request review. Call this exactly once, as your last action.",
+            SubmitReviewSchema,
+            new CacheControl("ephemeral")));
         return tools;
     }
 
@@ -122,39 +171,22 @@ public sealed class ClaudeCodeReviewAgent(
         sb.AppendLine(ctx.UnifiedDiff);
         sb.AppendLine("```");
         sb.AppendLine();
-        sb.AppendLine("Start by collecting any docs you need, then produce the JSON review per the protocol.");
+        sb.AppendLine("Start by collecting any docs you need, then call `submit_review` with your final verdict.");
 
         return sb.ToString();
     }
 
-    private static ReviewResult ParseFinalReview(IReadOnlyList<ContentBlock> blocks)
+    private static ReviewResult ParseSubmittedReview(ToolUseBlock submit)
     {
-        var text = string.Join("\n", blocks.OfType<TextBlock>().Select(b => b.Text)).Trim();
-        if (text.Length == 0)
-        {
-            throw new ReviewAgentException("Final assistant message contained no text.");
-        }
-
-        // Allow accidental ```json fences.
-        if (text.StartsWith("```"))
-        {
-            var firstNewline = text.IndexOf('\n');
-            var lastFence = text.LastIndexOf("```", StringComparison.Ordinal);
-            if (firstNewline > 0 && lastFence > firstNewline)
-            {
-                text = text[(firstNewline + 1)..lastFence].Trim();
-            }
-        }
-
         FinalReviewDto dto;
         try
         {
-            dto = JsonSerializer.Deserialize<FinalReviewDto>(text, ParseOptions)
-                ?? throw new ReviewAgentException("Final review JSON deserialised to null.");
+            dto = submit.Input.Deserialize<FinalReviewDto>(ParseOptions)
+                ?? throw new ReviewAgentException("submit_review input deserialised to null.");
         }
         catch (JsonException ex)
         {
-            throw new ReviewAgentException($"Could not parse final review JSON: {ex.Message}");
+            throw new ReviewAgentException($"Could not bind submit_review input: {ex.Message}");
         }
 
         var verdict = dto.Verdict switch

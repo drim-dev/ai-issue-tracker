@@ -78,17 +78,10 @@ public static class SystemPrompt
         for the old revision (removed lines). Anything outside the diff will be silently
         dropped.
 
-        Output — when you are done, emit a single assistant message whose ONLY content is
-        one JSON object, no surrounding prose, no markdown code fences:
+        Output — when you are done, call the `submit_review` tool with the final verdict,
+        summary and inline comments. Do not emit JSON or prose in a text block; the
+        `submit_review` call IS the review.
 
-        {
-          "summary": "1–3 short paragraphs describing the overall findings.",
-          "verdict": "approve" | "comment" | "request_changes",
-          "comments": [
-            { "path": "...", "line": 42, "side": "RIGHT", "category": "bug", "body": "..." }
-          ]
-        }
-
-        Keep `comments` short (typically ≤8). If you have no inline comments, emit `"comments": []`.
+        Keep `comments` short (typically ≤8). If you have no inline comments, pass an empty array.
         """;
 }

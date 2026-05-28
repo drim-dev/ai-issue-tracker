@@ -16,7 +16,12 @@ public static class AgentServiceCollectionExtensions
             http.DefaultRequestHeaders.Add("anthropic-version", "2023-06-01");
             http.Timeout = TimeSpan.FromMinutes(5);
         })
-        .AddStandardResilienceHandler();
+        .AddStandardResilienceHandler(o =>
+        {
+            o.AttemptTimeout.Timeout = TimeSpan.FromMinutes(2);
+            o.TotalRequestTimeout.Timeout = TimeSpan.FromMinutes(5);
+            o.CircuitBreaker.SamplingDuration = TimeSpan.FromMinutes(4);
+        });
 
         services.AddSingleton<ICodeReviewAgent, ClaudeCodeReviewAgent>();
         return services;
