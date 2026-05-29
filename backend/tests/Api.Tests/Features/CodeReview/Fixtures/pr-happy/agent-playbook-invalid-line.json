@@ -1,0 +1,8 @@
+[
+  {
+    "stop_reason": "end_turn",
+    "content": [
+      { "type": "text", "text": "{\"summary\": \"Two comments, one outside diff.\", \"verdict\": \"comment\", \"comments\": [{\"path\": \"backend/src/Api/Features/Auth/Login.cs\", \"line\": 4, \"side\": \"RIGHT\", \"category\": \"convention\", \"body\": \"Valid: line is in diff.\"}, {\"path\": \"backend/src/Api/Features/Auth/Login.cs\", \"line\": 999, \"side\": \"RIGHT\", \"category\": \"bug\", \"body\": \"Invalid: line 999 not in diff.\"}, {\"path\": \"backend/src/Api/Features/Auth/Other.cs\", \"line\": 1, \"side\": \"RIGHT\", \"category\": \"bug\", \"body\": \"Invalid: file not in PR.\"}]}" }
+    ]
+  }
+]

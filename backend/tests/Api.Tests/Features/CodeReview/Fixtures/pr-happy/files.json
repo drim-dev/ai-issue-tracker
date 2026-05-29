@@ -1,0 +1,9 @@
+[
+  {
+    "path": "backend/src/Api/Features/Auth/Login.cs",
+    "status": "added",
+    "additions": 10,
+    "deletions": 0,
+    "patch": "@@ -0,0 +1,5 @@\n+public class Login {\n+    public string Email { get; set; }\n+    public string Password { get; set; }\n+    public bool Validate() => true;\n+}\n"
+  }
+]

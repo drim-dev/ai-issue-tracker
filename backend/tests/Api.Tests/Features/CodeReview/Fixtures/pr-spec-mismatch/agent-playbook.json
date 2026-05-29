@@ -1,0 +1,8 @@
+[
+  {
+    "stop_reason": "end_turn",
+    "content": [
+      { "type": "text", "text": "{\"summary\": \"Missing priority enum from spec.\", \"verdict\": \"request_changes\", \"comments\": [{\"path\": \"backend/src/Api/Domain/Issue.cs\", \"line\": 2, \"side\": \"RIGHT\", \"category\": \"spec_mismatch\", \"body\": \"Spec requires a priority enum field.\"}]}" }
+    ]
+  }
+]

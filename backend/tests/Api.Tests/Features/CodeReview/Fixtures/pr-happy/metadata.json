@@ -1,0 +1,10 @@
+{
+  "coordinates": { "owner": "anthropics", "repo": "ai-issue-tracker", "number": 1 },
+  "title": "feat: auth module",
+  "body": "Implements docs/designs/auth.md.\n\nAdds login and password hashing.",
+  "headSha": "deadbeef",
+  "baseSha": "cafebabe",
+  "headRef": "feat/auth",
+  "baseRef": "main",
+  "author": "mitro"
+}

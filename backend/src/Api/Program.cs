@@ -5,6 +5,7 @@ using Api.Common.Http;
 using Api.Common.Identity;
 using Api.Common.Persistence;
 using Api.Common.Validation;
+using Api.Features.CodeReview;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -30,6 +31,9 @@ builder.Services.AddAuth();
 
 // Vertical-slice endpoints.
 builder.Services.AddEndpoints();
+
+// AI code review slice (reusable from CLI today, web later).
+builder.Services.AddCodeReviewFeature();
 
 var app = builder.Build();
 

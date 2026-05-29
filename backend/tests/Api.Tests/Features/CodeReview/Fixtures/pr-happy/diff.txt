@@ -1,0 +1,10 @@
+diff --git a/backend/src/Api/Features/Auth/Login.cs b/backend/src/Api/Features/Auth/Login.cs
+new file mode 100644
+--- /dev/null
++++ b/backend/src/Api/Features/Auth/Login.cs
+@@ -0,0 +1,5 @@
++public class Login {
++    public string Email { get; set; }
++    public string Password { get; set; }
++    public bool Validate() => true;
++}

@@ -1,0 +1,9 @@
+[
+  {
+    "path": "backend/src/Api/Domain/Issue.cs",
+    "status": "added",
+    "additions": 4,
+    "deletions": 0,
+    "patch": "@@ -0,0 +1,3 @@\n+public class Issue {\n+    public string Title { get; set; }\n+}\n"
+  }
+]
